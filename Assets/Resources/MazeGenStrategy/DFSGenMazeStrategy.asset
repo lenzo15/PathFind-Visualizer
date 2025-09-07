@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a98804eaf25407947a36ba3837a9fa2a, type: 3}
   m_Name: DFSGenMazeStrategy
   m_EditorClassIdentifier: 
-  randomSeed: 0
+  randomSeed: 114514
   delayTime: 50
