@@ -94,8 +94,11 @@ public class MainPanel : MonoBehaviour
         for (int i = 0; i < allCells.Count; i++)
         {
             allCells[i].gameObject.SetActive(i < cellCount);
-            cells.Add(allCells[i]);
-            InitCell(allCells[i], i % width, i / width);
+            if (i < cellCount)
+            {
+                cells.Add(allCells[i]);
+                InitCell(allCells[i], i % width, i / width);
+            }
         }
         StrategyManager.Instance?.InitCells();
         RefreshGridSize(width, height);
