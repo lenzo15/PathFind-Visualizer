@@ -1,5 +1,7 @@
 # PathFind Visualizer
 
+**共同开发者：** gpt-6.1-sol
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 基于 HTML、CSS 和 JavaScript 的交互式寻路与迷宫生成可视化工具。完全在浏览器中运行，无运行时依赖，无需构建。

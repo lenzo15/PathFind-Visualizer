@@ -1,5 +1,7 @@
 # PathFind Visualizer
 
+**Co-developer:** gpt-6.1-sol
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 An interactive pathfinding and maze generation visualizer built with HTML, CSS, and JavaScript. Runs entirely in the browser without runtime dependencies or a build step.
