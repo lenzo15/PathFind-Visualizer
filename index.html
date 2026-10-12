@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10181f">
+  <meta name="description" data-i18n-content="page.description"
+    content="在浏览器中绘制地图、生成迷宫，交互式探索 A*、Dijkstra、BFS 和 DFS 寻路算法。">
+  <title data-i18n="page.title">PathFind · 寻路可视化实验室</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/algorithms.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+
+<body>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-play" viewBox="0 0 24 24">
+      <path d="m9 5 11 7-11 7Z" />
+    </symbol>
+    <symbol id="icon-pause" viewBox="0 0 24 24">
+      <path d="M8 5v14M16 5v14" />
+    </symbol>
+    <symbol id="icon-stop" viewBox="0 0 24 24">
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </symbol>
+    <symbol id="icon-step" viewBox="0 0 24 24">
+      <path d="m5 5 10 7-10 7ZM19 5v14" />
+    </symbol>
+    <symbol id="icon-wall" viewBox="0 0 24 24">
+      <path d="M3 4h18v16H3ZM3 12h18M12 4v8M8 12v8M16 12v8" />
+    </symbol>
+    <symbol id="icon-erase" viewBox="0 0 24 24">
+      <path d="m4 13 10-10 7 7-10 10H8ZM8 9l7 7M11 20h10" />
+    </symbol>
+    <symbol id="icon-start" viewBox="0 0 24 24">
+      <path d="m8 5 10 7-10 7Z" />
+    </symbol>
+    <symbol id="icon-end" viewBox="0 0 24 24">
+      <path d="M5 21V3M5 4h14v10H5M12 4v10M5 9h14" />
+    </symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24">
+      <path d="M20 7a9 9 0 1 0 1 9M20 3v5h-5" />
+    </symbol>
+    <symbol id="icon-maze" viewBox="0 0 24 24">
+      <path d="M4 4h16v16H4V9h11v6H9M10 4v5M20 15h-5M9 15v5" />
+    </symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h14m-6-6 6 6-6 6" />
+    </symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+    </symbol>
+  </svg>
+
+  <header class="site-header">
+    <a class="brand" href="./index.html" aria-label="PathFind 首页" data-i18n-aria-label="header.home">
+      <span class="brand-mark"><svg>
+          <use href="#icon-maze" />
+        </svg></span>
+      <span>Path<span class="brand-accent">Find</span></span>
+    </a>
+    <div class="header-right">
+      <span class="web-badge"><span></span><span data-i18n="header.edition">网页版</span></span>
+      <select id="language" class="language-select" aria-label="选择语言" data-i18n-aria-label="header.language">
+        <option value="zh-CN" lang="zh-CN">简体中文</option>
+        <option value="en" lang="en">English</option>
+      </select>
+      <a href="#help-dialog" class="source-link" id="help-link"><span data-i18n="header.help">使用指南</span> <span
+          aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <aside class="control-panel" aria-label="算法与地图设置" data-i18n-aria-label="controls.label">
+      <section class="control-section">
+        <h2><span class="section-number">01</span> <span data-i18n="controls.search">寻路算法</span></h2>
+        <label class="field-label" for="algorithm" data-i18n="controls.algorithm">选择算法</label>
+        <select id="algorithm" data-lock>
+          <option value="astar">A*</option>
+          <option value="dijkstra">Dijkstra</option>
+          <option value="bfs">BFS</option>
+          <option value="dfs">DFS</option>
+        </select>
+        <button class="button button-primary" id="run"><svg>
+            <use href="#icon-play" />
+          </svg><span data-i18n="controls.run">开始寻路</span><kbd>Space</kbd></button>
+        <div class="playback-controls">
+          <button class="button button-secondary" id="pause" disabled><svg>
+              <use href="#icon-pause" />
+            </svg><span>暂停</span></button>
+          <button class="button button-icon" id="step" disabled title="单步前进（先暂停）" aria-label="单步前进"
+            data-i18n-title="controls.stepHint" data-i18n-aria-label="controls.step"><svg>
+              <use href="#icon-step" />
+            </svg></button>
+          <button class="button button-icon" id="stop" disabled title="停止动画，保留当前地图" aria-label="停止动画"
+            data-i18n-title="controls.stopHint" data-i18n-aria-label="controls.stop"><svg>
+              <use href="#icon-stop" />
+            </svg></button>
+        </div>
+        <div class="range-heading"><label for="speed" data-i18n="controls.speed">动画速度</label><output id="speed-value"
+            for="speed">50 步 / 秒</output>
+        </div>
+        <input id="speed" type="range" min="1" max="100" value="50" aria-label="动画速度"
+          data-i18n-aria-label="controls.speed">
+        <div class="range-captions"><span data-i18n="controls.slow">慢慢观察</span><span
+            data-i18n="controls.fast">快速探索</span></div>
+      </section>
+
+      <section class="control-section">
+        <h2><span class="section-number">02</span> <span data-i18n="controls.map">地图与迷宫</span></h2>
+        <form id="grid-form">
+          <div class="size-fields"><label for="columns"><span data-i18n="controls.columns">列数</span><input id="columns"
+                type="number" min="5" max="101" value="41" required data-lock></label><span>×</span><label
+              for="rows"><span data-i18n="controls.rows">行数</span><input id="rows" type="number" min="5" max="101"
+                value="25" required data-lock></label><button class="button button-icon" type="submit"
+              title="应用网格尺寸，重置地图" aria-label="应用网格尺寸" data-i18n-title="controls.applySizeHint"
+              data-i18n-aria-label="controls.applySize" data-lock><svg>
+                <use href="#icon-grid" />
+              </svg></button></div>
+        </form>
+        <label class="field-label" for="maze" data-i18n="controls.maze">迷宫生成算法</label>
+        <select id="maze" data-lock>
+          <option value="dfs">DFS</option>
+          <option value="prim">Prim</option>
+          <option value="kruskal">Kruskal</option>
+          <option value="division" data-i18n="maze.divisionOption">递归分割</option>
+        </select>
+        <div class="seed-field"><label for="seed" data-i18n="controls.seed">随机种子</label><input id="seed" type="text"
+            value="pathfind" maxlength="64" placeholder="留空则随机生成" data-i18n-placeholder="controls.seedPlaceholder"
+            data-lock></div>
+        <button class="button button-outline" id="generate-maze" data-lock><svg>
+            <use href="#icon-maze" />
+          </svg><span data-i18n="controls.generate">生成迷宫</span><svg class="end-icon">
+            <use href="#icon-arrow" />
+          </svg></button>
+        <div class="reset-controls"><button class="text-button" id="clear-path" data-i18n="controls.clearPath"
+            data-lock>清除轨迹</button><span></span><button class="text-button" id="clear-map" data-i18n="controls.clearMap"
+            data-lock>清空地图</button><span></span><button class="text-button" id="demo" data-i18n="controls.demo"
+            data-lock>示例地图</button></div>
+      </section>
+    </aside>
+
+    <section class="workspace" aria-label="可视化工作区" data-i18n-aria-label="workspace.label">
+      <div class="board-card">
+        <div class="board-toolbar">
+          <div class="drawing-tools" role="group" aria-label="绘制工具" data-i18n-aria-label="tools.label">
+            <button class="tool-button active" data-tool="wall" title="绘制墙体 (W)" aria-label="绘制墙体" aria-pressed="true"
+              data-i18n-title="tools.wallHint" data-i18n-aria-label="tools.wallLabel" data-lock><svg>
+                <use href="#icon-wall" />
+              </svg><span data-i18n="tools.wall">墙体</span></button>
+            <button class="tool-button" data-tool="erase" title="擦除墙体 (E)" aria-label="擦除墙体" aria-pressed="false"
+              data-i18n-title="tools.eraseHint" data-i18n-aria-label="tools.eraseLabel" data-lock><svg>
+                <use href="#icon-erase" />
+              </svg><span data-i18n="tools.erase">擦除</span></button>
+            <span class="toolbar-divider"></span>
+            <button class="tool-button" data-tool="start" title="放置起点 (S)" aria-label="放置起点" aria-pressed="false"
+              data-i18n-title="tools.startHint" data-i18n-aria-label="tools.startLabel" data-lock><svg
+                class="start-icon">
+                <use href="#icon-start" />
+              </svg><span data-i18n="tools.start">起点</span></button>
+            <button class="tool-button" data-tool="end" title="放置终点 (F)" aria-label="放置终点" aria-pressed="false"
+              data-i18n-title="tools.endHint" data-i18n-aria-label="tools.endLabel" data-lock><svg
+                class="end-point-icon">
+                <use href="#icon-end" />
+              </svg><span data-i18n="tools.end">终点</span></button>
+          </div>
+          <div class="zoom-controls" role="group" aria-label="网格缩放" data-i18n-aria-label="zoom.label"><button
+              id="zoom-out" aria-label="缩小网格" data-i18n-aria-label="zoom.out">−</button><output
+              id="zoom-value">100%</output><button id="zoom-in" aria-label="放大网格"
+              data-i18n-aria-label="zoom.in">+</button><button id="zoom-fit" title="适应窗口" aria-label="适应窗口"
+              data-i18n-title="zoom.fit" data-i18n-aria-label="zoom.fit"><svg>
+                <use href="#icon-refresh" />
+              </svg></button></div>
+        </div>
+        <div class="board-viewport" id="board-viewport">
+          <div class="canvas-wrapper" id="canvas-wrapper"><canvas id="grid" tabindex="0"
+              aria-label="可编辑寻路网格：方向键移动光标，回车绘制，W 墙体、E 擦除、S 起点、F 终点。" data-i18n-aria-label="grid.label"
+              data-i18n="grid.unsupported" aria-describedby="grid-help">您的浏览器不支持
+              Canvas，请使用现代浏览器。</canvas></div>
+          <span class="board-watermark" aria-hidden="true" data-i18n="grid.watermark">绘制 · 寻路 · 探索</span>
+        </div>
+        <div class="board-bottom"><span id="grid-size">41 × 25 网格</span><span id="grid-help" data-i18n="grid.help">拖动绘制
+            · 右键擦除 · 拖动起终点 · Ctrl
+            + 滚轮缩放</span><span class="board-coordinates" id="coordinates">— , —</span></div>
+      </div>
+      <div class="legend" aria-label="网格图例" data-i18n-aria-label="legend.label"><span><i class="legend-start"></i><span
+            data-i18n="tools.start">起点</span></span><span><i class="legend-end"></i><span
+            data-i18n="tools.end">终点</span></span><span><i class="legend-wall"></i><span
+            data-i18n="tools.wall">墙体</span></span><span><i class="legend-frontier"></i><span
+            data-i18n="legend.frontier">待探索</span></span><span><i class="legend-visited"></i><span
+            data-i18n="legend.visited">已访问</span></span><span><i class="legend-path"></i><span
+            data-i18n="legend.path">最终路径</span></span></div>
+
+      <div class="metrics" aria-label="运行统计" data-i18n-aria-label="metrics.label">
+        <div class="metric"><span class="metric-label"><span data-i18n="metrics.visited">已访问节点</span> <span
+              data-i18n="metrics.visitedCaption">访问统计</span></span>
+          <div><strong id="visited-count">0</strong><span class="metric-unit" data-i18n="metrics.nodes">个节点</span></div>
+          <div class="metric-progress"><span id="visited-progress"></span></div>
+        </div>
+        <div class="metric"><span class="metric-label"><span data-i18n="metrics.path">路径长度</span> <span
+              data-i18n="metrics.pathCaption">路径统计</span></span>
+          <div><strong id="path-length">—</strong><span class="metric-unit" data-i18n="metrics.steps">步</span></div>
+          <p id="path-note">等待一次新的探索</p>
+        </div>
+        <div class="metric"><span class="metric-label"><span data-i18n="metrics.time">计算用时</span> <span
+              data-i18n="metrics.timeCaption">算法耗时</span></span>
+          <div><strong id="compute-time">—</strong><span class="metric-unit">ms</span></div>
+          <p data-i18n="metrics.timeHint">仅算法计算，不含动画播放</p>
+        </div>
+      </div>
+      <div class="status-bar" role="status" aria-live="polite"><span class="status-indicator"
+          id="status-indicator"></span><span id="status-text">准备就绪，绘制地图或直接开始寻路。</span><span class="status-shortcut"
+          data-i18n="status.shortcut">SPACE 开始 / 暂停</span></div>
+    </section>
+  </main>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <form method="dialog"><button class="dialog-close" aria-label="关闭指南" data-i18n-aria-label="help.close">×</button>
+    </form>
+    <span class="eyebrow" id="help-title" data-i18n="help.title">使用指南</span>
+    <ol>
+      <li><strong data-i18n="help.draw">绘制地图</strong>
+        <p data-i18n="help.drawText">选择墙体工具并拖动绘制；擦除工具或鼠标右键可移除墙体。起终点可以直接拖动，也可以选择对应工具后点击放置。</p>
+      </li>
+      <li><strong data-i18n="help.maze">生成迷宫</strong>
+        <p data-i18n="help.mazeText">选择一种迷宫算法，输入随机种子后点击生成。偶数尺寸会自动加一；相同尺寸、算法和种子会生成相同地图。</p>
+      </li>
+      <li><strong data-i18n="help.search">观察寻路</strong>
+        <p data-i18n="help.searchText">可随时调速、暂停、单步或停止。地图编辑会清除旧轨迹。</p>
+      </li>
+    </ol>
+    <div class="keyboard-guide"><span><kbd>Space</kbd> <span data-i18n="help.playback">开始 /
+          暂停</span></span><span><kbd>W</kbd> <span data-i18n="tools.wall">墙体</span></span><span><kbd>E</kbd>
+        <span data-i18n="tools.erase">擦除</span></span><span><kbd>S</kbd> <span
+          data-i18n="tools.start">起点</span></span><span><kbd>F</kbd> <span
+          data-i18n="tools.end">终点</span></span><span><kbd>Esc</kbd> <span
+          data-i18n="help.stop">停止</span></span><span><kbd>↑ ↓ ←
+          →</kbd> <span data-i18n="help.cursor">网格光标</span></span><span><kbd>Enter</kbd> <span
+          data-i18n="help.paint">绘制选中格</span></span></div>
+  </dialog>
+  <div class="mobile-playback" role="group" aria-label="移动端播放控制" data-i18n-aria-label="mobile.label">
+    <button class="button button-primary" id="mobile-run"><svg>
+        <use href="#icon-play" />
+      </svg><span>开始寻路</span></button>
+    <button class="button button-icon" id="mobile-step" disabled title="暂停后单步前进" aria-label="单步前进"
+      data-i18n-title="mobile.stepHint" data-i18n-aria-label="controls.step"><svg>
+        <use href="#icon-step" />
+      </svg></button>
+    <button class="button button-icon" id="mobile-stop" disabled title="停止动画" aria-label="停止动画"
+      data-i18n-title="controls.stop" data-i18n-aria-label="controls.stop"><svg>
+        <use href="#icon-stop" />
+      </svg></button>
+  </div>
+  <noscript>
+    <div class="noscript-message">请启用 JavaScript 以使用寻路可视化工具。 / Enable JavaScript to use the pathfinding visualizer.
+    </div>
+  </noscript>
+</body>
+
+</html>
